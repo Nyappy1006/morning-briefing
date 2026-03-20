@@ -26,7 +26,6 @@ PROMPT = """
 ・ニュース1タイトル
 　→ 保険営業的な意味：〇〇
 　🔗 URL
-・ニュース2...
 
 📊 **証券・投信トレンド**
 （投信から保険への切り替えトーク素材の視点で）
@@ -36,7 +35,7 @@ PROMPT = """
 
 🌍 **海外金利・為替サマリー**
 （外貨建て一時払保険のトーク素材として）
-・今日のドル円：〇〇円（〇〇の動き）
+・今日のドル円：〇〇円
 ・米国金利動向：〇〇
 　→ 外貨建て保険トーク：〇〇
 　🔗 URL
@@ -98,8 +97,7 @@ def get_briefing():
         headers={
             "Content-Type": "application/json",
             "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01",
-            "anthropic-beta": "interleaved-thinking-2025-05-14"
+            "anthropic-version": "2023-06-01"
         },
         method="POST"
     )

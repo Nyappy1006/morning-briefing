@@ -59,16 +59,15 @@ def get_briefing():
         "messages": [{"role": "user", "content": prompt}]
     }).encode("utf-8")
 
-    req = urllib.request.Request(
-        "https://api.anthropic.com/v1/messages",
-        data=payload,
-        headers={
-            "Content-Type": "application/json",
-            "x-api-key": ANTHROPIC_API_KEY,
-            "anthropic-version": "2023-06-01"
-        },
-        method="POST"
-    )
+  req = urllib.request.Request(
+            DISCORD_WEBHOOK_URL,
+            data=payload,
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "DiscordBot (morning-briefing, 1.0)"
+            },
+            method="POST"
+        )
 
     with urllib.request.urlopen(req) as res:
         data = json.loads(res.read().decode("utf-8"))

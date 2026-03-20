@@ -52,7 +52,15 @@ def get_briefing():
     prompt = PROMPT.format(date=today)
 
     payload = json.dumps({
-        "model": "claude-haiku-4-5-20251001",
+        "model": "claude-sonnet-4-20250514",
+```
+
+**その後：**
+1. 右上「Commit changes」を押す
+2. 「Commit changes」ボタンを押す
+3. Actions画面で「実行ワークフロー」を押す
+```
+https://github.com/Nyappy1006/morning-briefing/actions/workflows/main.yml
         "max_tokens": 4000,
         "tools": [{"type": "web_search_20250305", "name": "web_search"}],
         "messages": [{"role": "user", "content": prompt}]

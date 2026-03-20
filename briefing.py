@@ -6,18 +6,43 @@ import os
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1484428446615605248/k4C6jxp40lfkCfiaHeVJ39QrBpPZrJgKCNlHSfCLVJ-BRvEENMfmU9_CtYGf75Tu4Wpe"
 
+def get_weather():
+    url = "https://api.open-meteo.com/v1/forecast?latitude=35.6762&longitude=139.6503&current=temperature_2m,weathercode&timezone=Asia%2FTokyo"
+    try:
+        req = urllib.request.Request(url)
+        with urllib.request.urlopen(req) as res:
+            data = json.loads(res.read().decode("utf-8"))
+        temp = data["current"]["temperature_2m"]
+        code = data["current"]["weathercode"]
+        weather_map = {
+            0: "快晴", 1: "晴れ", 2: "晴れ時々曇り", 3: "曇り",
+            45: "霧", 48: "霧",
+            51: "小雨", 53: "雨", 55: "強雨",
+            61: "小雨", 63: "雨", 65: "強雨",
+            71: "小雪", 73: "雪", 75: "大雪",
+            80: "にわか雨", 81: "雨", 82: "強雨",
+            95: "雷雨", 96: "雷雨", 99: "雷雨"
+        }
+        weather = weather_map.get(code, "不明")
+        return f"{weather}　{temp}°C"
+    except:
+        return "取得できませんでした"
+
 PROMPT = """
 以下のタスクを実行してください。
 
-今日は{date}です。Web検索を使って今日のニュースを優先して収集してください。今日の情報がなければ直近3日以内、それもなければそのカテゴリはスキップしてください。新しい情報がないカテゴリは絶対に省略してください。無理に埋めないでください。
+今日は{date}です。Web検索を使って今日のニュースを優先して収集してください。今日の情報がなければ直近3日以内、それもなければそのカテゴリはスキップしてください。新しい情報がないカテゴリは省略してください。無理に埋めないでください。
 
 各ニュースにはURLをつけてください。専門用語には括弧で解説をつけてください。
 
+保険営業との接点について：もし読んでいて自然に「これは保険の話につながるな」と思えた場合のみ、一言添える程度でOKです。無理につなげる必要はありません。つながらなければ書かなくていいです。
+
 ニュースが見つかったカテゴリは以下の構成で書いてください。
-ニュース概要（2から3文）、背景と文脈、生命保険の銀行窓販営業担当者がお客様との会話でどう活用できるか（自然につながる場合のみ3から5文で、こじつけは不要）、URL
+ニュース概要（2から3文）、背景と文脈、もし自然につながるなら保険営業のヒント一言、URL
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
 朝刊ブリーフィング {date}
+{weather}
 ━━━━━━━━━━━━━━━━━━━━━━━━
 
 今日のビッグニュース（カテゴリ問わずトップ3から5件）
@@ -26,9 +51,9 @@ PROMPT = """
 
 証券・投資信託トレンド
 
-分配型投信の減配・分配金変更情報（減配や分配金変更の事実があれば。なければスキップ）
+分配型投信の減配・分配金変更情報（事実があれば。なければスキップ）
 
-投信×一時払い保険クロスセルネタ（今注目の投信カテゴリや資金流入トレンドをもとに、一時払い保険をセットで提案できる切り口を紹介。新しい動きがなければスキップ）
+投信×一時払い保険クロスセルネタ（今注目の投信トレンドと一時払い保険をセットで提案できる切り口。新しい動きがなければスキップ）
 
 海外金利・為替
 
@@ -44,14 +69,14 @@ AI・フィンテック
 
 今日の支店訪問ネタ候補（見つかったニュースから最大3つ、一言トーク例つき）
 
-Claudeコラム（今日特に保険営業に影響しそうな注目点があれば。なければスキップ）
+Claudeコラム（今日特に注目すべき点があれば。なければスキップ）
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
 """.strip()
 
-def get_briefing():
+def get_briefing(weather):
     today = datetime.date.today().strftime("%Y年%m月%d日")
-    prompt = PROMPT.format(date=today)
+    prompt = PROMPT.format(date=today, weather=f"東京の天気：{weather}")
 
     payload = json.dumps({
         "model": "claude-sonnet-4-20250514",
@@ -107,7 +132,8 @@ def send_to_discord(message):
 
 if __name__ == "__main__":
     print("briefing start")
-    briefing = get_briefing()
+    weather = get_weather()
+    briefing = get_briefing(weather)
     print("sending to discord")
     send_to_discord(briefing)
     print("done")

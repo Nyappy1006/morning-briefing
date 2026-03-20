@@ -4,7 +4,7 @@ import datetime
 import os
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-DISCORD_WEBHOOK_URL = "あなたのURLをここに"
+DISCORD_WEBHOOK_URL = https://discordapp.com/api/webhooks/1484428446615605248/k4C6jxp40lfkCfiaHeVJ39QrBpPZrJgKCNlHSfCLVJ-BRvEENMfmU9_CtYGf75Tu4Wpe
 
 def get_briefing():
     today_dt = datetime.date.today()

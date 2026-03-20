@@ -19,8 +19,7 @@ def get_weather():
             data = json.loads(res.read().decode("utf-8"))
         temp = data["current"]["temperature_2m"]
         code = data["current"]["weathercode"]
-        weather = weather_map.get(code, "不明")
-        return f"{weather} {temp}C"
+        return f"{weather_map.get(code,'不明')} {temp}C"
     except:
         return "取得失敗"
 
@@ -28,29 +27,27 @@ def get_briefing(weather):
     today = datetime.date.today().strftime("%Y年%m月%d日")
     prompt = f"""今日は{today}。東京の天気：{weather}
 
-銀行窓販ホールセラー向けに、Web検索で今日のニュースを収集してまとめてください。
+銀行窓販ホールセラー向けに以下カテゴリでWeb検索してニュースをまとめてください。
+今日のニュース優先。なければ直近3日以内。それもなければそのカテゴリは省略。
+謝罪表現禁止。URLを各ニュースに添付。専門用語は括弧で解説。
+保険営業との接点は自然につながる場合のみ一言。こじつけ禁止。
 
-ルール：今日のニュース優先、なければ直近3日以内、それもなければそのカテゴリを省略。謝罪や「確認できませんでした」等の表現禁止。各ニュースにURL添付。専門用語は括弧で解説。保険営業との接点は自然につながる場合のみ一言、こじつけ禁止。
-
-構成：ニュース概要（2〜3文）→ 背景 → 保険ヒント（任意） → URL
-
-== 朝刊ブリーフィング {today} ==
+【朝刊ブリーフィング {today}】
 東京：{weather}
 
-[今日のビッグニュース（3〜5件）]
-[銀行・金融機関の動き]
-[証券・投資信託トレンド]
-[分配型投信の減配・分配金変更情報]
-[投信×一時払い保険クロスセルネタ]
-[海外金利・為替]
-[日本経済・税制・相続関連]
-[生命保険・損害保険業界]
-[認知症・介護・成年後見]
-[富裕層・資産管理トレンド]
-[AI・フィンテック]
-[今日の支店訪問ネタ（最大3つ、トーク例つき）]
-[Claudeコラム（注目点があれば）]
-"""
+今日のビッグニュース（3から5件）
+銀行・金融機関の動き
+証券・投資信託トレンド
+分配型投信の減配・分配金変更情報
+投信x一時払い保険クロスセルネタ
+海外金利・為替
+日本経済・税制・相続関連
+生命保険・損害保険業界
+認知症・介護・成年後見
+富裕層・資産管理トレンド
+AI・フィンテック
+今日の支店訪問ネタ（最大3つ、トーク例つき）
+Claudeコラム（注目点があれば）"""
 
     payload = json.dumps({
         "model": "claude-sonnet-4-5",
@@ -77,7 +74,6 @@ def get_briefing(weather):
     for block in data.get("content", []):
         if block.get("type") == "text":
             text += block.get("text", "")
-
     return text
 
 def send_to_discord(message):

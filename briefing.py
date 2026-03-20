@@ -79,7 +79,7 @@ def get_briefing(weather):
     prompt = PROMPT.format(date=today, weather=f"東京の天気：{weather}")
 
     payload = json.dumps({
-        "model": "claude-sonnet-4-20250514",
+        "model": "claude-sonnet-4-5",
         "max_tokens": 4000,
         "tools": [{"type": "web_search_20250305", "name": "web_search"}],
         "messages": [{"role": "user", "content": prompt}]

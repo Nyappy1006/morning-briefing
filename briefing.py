@@ -4,7 +4,7 @@ import datetime
 import os
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
-DISCORD_WEBHOOK_URL = os.environ.get("DISCORD_WEBHOOK_URL")
+DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1484428446615605248/k4C6jxp40lfkCfiaHeVJ39QrBpPZrJgKCNlHSfCLVJ-BRvEENMfmU9_CtYGf75Tu4Wpe"
 
 PROMPT = """
 あなたは日本の生命保険会社の銀行窓販ホールセラー専用のニュースアシスタントです。

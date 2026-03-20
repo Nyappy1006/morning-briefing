@@ -17,91 +17,65 @@ def get_weather():
         "&forecast_days=1"
     )
     weather_map = {
-        0: "快晴", 1: "晴れ", 2: "晴れ時々曇り", 3: "曇り",
-        45: "霧", 48: "霧",
-        51: "小雨", 53: "雨", 55: "強雨",
-        61: "小雨", 63: "雨", 65: "強雨",
-        71: "小雪", 73: "雪", 75: "大雪",
-        80: "にわか雨", 81: "雨", 82: "強雨",
-        95: "雷雨", 96: "雷雨", 99: "雷雨"
+        0:"快晴",1:"晴れ",2:"晴れ時々曇り",3:"曇り",
+        45:"霧",48:"霧",51:"小雨",53:"雨",55:"強雨",
+        61:"小雨",63:"雨",65:"強雨",71:"小雪",73:"雪",75:"大雪",
+        80:"にわか雨",81:"雨",82:"強雨",95:"雷雨",96:"雷雨",99:"雷雨"
     }
     try:
-        req = urllib.request.Request(url)
-        with urllib.request.urlopen(req) as res:
+        with urllib.request.urlopen(url) as res:
             data = json.loads(res.read().decode("utf-8"))
-
         temp_max = data["daily"]["temperature_2m_max"][0]
         temp_min = data["daily"]["temperature_2m_min"][0]
-
         hours = data["hourly"]["time"]
         codes = data["hourly"]["weathercode"]
         temps = data["hourly"]["temperature_2m"]
-
-        slots = [6, 9, 12, 15, 18, 21]
-        hourly_lines = []
+        slots = [6,9,12,15,18,21]
+        lines = []
         for h in slots:
-            for i, t in enumerate(hours):
+            for i,t in enumerate(hours):
                 if t.endswith(f"T{h:02d}:00"):
-                    w = weather_map.get(codes[i], "不明")
-                    hourly_lines.append(f"{h:02d}時 {w} {temps[i]}°C")
+                    lines.append(f"{h}時:{weather_map.get(codes[i],'不明')}{temps[i]}°C")
                     break
+        return f"最高{temp_max}°C/最低{temp_min}°C　" + "　".join(lines)
+    except:
+        return "取得失敗"
 
-        result = f"最高 {temp_max}°C / 最低 {temp_min}°C\n"
-        result += "　".join(hourly_lines)
-        return result
-    except Exception as e:
-        return "天気情報取得できませんでした"
+PROMPT = """今日は{date}。銀行窓販ホールセラー向けニュースをWeb検索でまとめてください。
 
-PROMPT = """
-以下のタスクを実行してください。
+ルール：
+・今日のニュース優先。なければ直近3日以内。それもなければそのカテゴリは丸ごと省略
+・謝罪や「確認できませんでした」等の表現禁止。ない場合は黙って省略
+・URLを各ニュースに添付
+・専門用語は括弧で解説
+・保険営業との接点：自然につながる場合のみ一言。こじつけ禁止
 
-今日は{date}です。Web検索を使って今日のニュースを優先して収集してください。今日の情報がなければ直近3日以内、それもなければそのカテゴリはスキップしてください。新しい情報がないカテゴリは省略してください。無理に埋めないでください。
-
-各ニュースにはURLをつけてください。専門用語には括弧で解説をつけてください。
-
-保険営業との接点について：もし読んでいて自然に「これは保険の話につながるな」と思えた場合のみ、一言添える程度でOKです。無理につなげる必要はありません。つながらなければ書かなくていいです。
-
-ニュースが見つかったカテゴリは以下の構成で書いてください。
-ニュース概要（2から3文）、背景と文脈、もし自然につながるなら保険営業のヒント一言、URL
+構成：ニュース概要（2〜3文）→背景→保険ヒント（任意）→URL
 
 ━━━━━━━━━━━━━━━━━━━━━━━━
 朝刊ブリーフィング {date}
-{weather}
+東京：{weather}
 ━━━━━━━━━━━━━━━━━━━━━━━━
 
-今日のビッグニュース（カテゴリ問わずトップ3から5件）
-
+今日のビッグニュース（3〜5件）
 銀行・金融機関の動き
-
 証券・投資信託トレンド
-
-分配型投信の減配・分配金変更情報（事実があれば。なければスキップ）
-
-投信×一時払い保険クロスセルネタ（今注目の投信トレンドと一時払い保険をセットで提案できる切り口。新しい動きがなければスキップ）
-
+分配型投信の減配・分配金変更情報
+投信×一時払い保険クロスセルネタ
 海外金利・為替
-
 日本経済・税制・相続関連
-
 生命保険・損害保険業界
-
 認知症・介護・成年後見
-
 富裕層・資産管理トレンド
-
 AI・フィンテック
+今日の支店訪問ネタ（最大3つ、トーク例つき）
+Claudeコラム（注目点があれば）
 
-今日の支店訪問ネタ候補（見つかったニュースから最大3つ、一言トーク例つき）
-
-Claudeコラム（今日特に注目すべき点があれば。なければスキップ）
-
-━━━━━━━━━━━━━━━━━━━━━━━━
-""".strip()
+━━━━━━━━━━━━━━━━━━━━━━━━""".strip()
 
 def get_briefing(weather):
     today = datetime.date.today().strftime("%Y年%m月%d日")
-    weather_block = f"東京の天気：{weather}"
-    prompt = PROMPT.format(date=today, weather=weather_block)
+    prompt = PROMPT.format(date=today, weather=weather)
 
     payload = json.dumps({
         "model": "claude-sonnet-4-20250514",
@@ -156,9 +130,8 @@ def send_to_discord(message):
             pass
 
 if __name__ == "__main__":
-    print("briefing start")
+    print("start")
     weather = get_weather()
     briefing = get_briefing(weather)
-    print("sending to discord")
     send_to_discord(briefing)
     print("done")

@@ -5,18 +5,19 @@ import os
 
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 DISCORD_WEBHOOK_URL = "https://discord.com/api/webhooks/1484428446615605248/k4C6jxp40lfkCfiaHeVJ39QrBpPZrJgKCNlHSfCLVJ-BRvEENMfmU9_CtYGf75Tu4Wpe"
+
 def get_briefing():
     today_dt = datetime.date.today()
     today = today_dt.strftime("%Y年%m月%d日")
     
-    # 【節約ポイント1】土日（5, 6）なら即終了して課金を防ぐ
+    # 土日（5, 6）なら実行せずに終了
     if today_dt.weekday() >= 5:
         print(f"今日は{today}（週末）のため、実行をスキップします。")
         return None
 
-    # 【節約ポイント2】プロンプトを3カテゴリに絞ってAIの負担を減らす
+    # カテゴリを3つに絞り、Haikuでも精度が出るように調整
     prompt = f"""今日は{today}。銀行窓販ホールセラー向けに、以下3点に絞ってWeb検索し簡潔にまとめて。
-URLを各ニュースに添付。専門用語は解説。
+URLを各ニュースに添付。専門用語は括弧で解説。
 
 【朝刊ブリーフィング {today}】
 1. 金融・市場の主要動向（為替・金利・株価）
@@ -25,7 +26,6 @@ URLを各ニュースに添付。専門用語は解説。
 """
 
     payload = json.dumps({
-        # 【節約ポイント3】安価なHaikuモデルに変更
         "model": "claude-3-5-haiku-20241022", 
         "max_tokens": 2500,
         "tools": [{"type": "web_search_20250305", "name": "web_search"}],
@@ -53,16 +53,18 @@ URLを各ニュースに添付。専門用語は解説。
                 text += block.get("text", "")
         return text
     except Exception as e:
-        print(f"エラーが発生しました: {e}")
+        print(f"APIエラーが発生しました: {e}")
         return None
 
 def send_to_discord(message):
-    if not message: return
+    if not message:
+        return
     
     chunks = []
     while len(message) > 1900:
         split_pos = message[:1900].rfind("\n")
-        if split_pos == -1: split_pos = 1900
+        if split_pos == -1:
+            split_pos = 1900
         chunks.append(message[:split_pos])
         message = message[split_pos:]
     chunks.append(message)
@@ -85,4 +87,4 @@ if __name__ == "__main__":
         send_to_discord(briefing)
         print("Discordへの送信が完了しました。")
     else:
-        print("本日の処理を終了します（配信なし）。")
+        print("本日の配信はありません。")
